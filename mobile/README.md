@@ -1,10 +1,3 @@
-cd backend
-venv\Scripts\activate
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-
-cd frontend
-npx expo start
 
 
 # Welcome to your Expo app 👋
