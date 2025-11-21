@@ -6,7 +6,7 @@ export default function HomeScreen() {
   const options = [
     { title: "Text Detector", icon: "text-box-search-outline", link: "/textDetector" },
     { title: "URL Detector", icon: "link-variant", link: "/urlDetector" },
-   
+   { title: "OCR Adhaar", icon: "camera", link: "/selfie" }
   ];
 
   return (

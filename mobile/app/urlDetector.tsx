@@ -7,7 +7,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 export default function URLDetector() {
   const router = useRouter();
   const [url, setUrl] = useState("");
-  const [result, setResult] = useState(null);
+ const [result, setResult] = useState<
+  { status: string; message: string } | null
+>(null);
   const [loading, setLoading] = useState(false);
 
   const handleCheck = async () => {
@@ -20,7 +22,7 @@ export default function URLDetector() {
   setResult(null);
 
   try {
-    const res = await axios.post("http://172.20.10.14:8000/predict/url", {
+    const res = await axios.post("http://192.168.1.33:8000/predict/url", {
       url: url,
     });
 
@@ -82,7 +84,7 @@ export default function URLDetector() {
             style={[
               styles.status,
               { color:
-                  result.status === "SCAM"
+                  result.status=== "SCAM"
                     ? "red"
                     : result.status === "LEGIT"
                     ? "green"

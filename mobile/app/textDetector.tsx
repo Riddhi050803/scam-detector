@@ -7,7 +7,10 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 export default function TextDetector() {
   const router = useRouter();
   const [text, setText] = useState("");
-  const [result, setResult] = useState(null);
+ const [result, setResult] = useState<
+  { status: string; message: string } | null
+>(null);
+
   const [loading, setLoading] = useState(false);
 
   const handleCheck = async () => {
@@ -20,7 +23,7 @@ export default function TextDetector() {
   setResult(null);
 
   try {
-    const res = await axios.post("http://172.20.10.14:8000/predict/message", {
+    const res = await axios.post("http://192.168.1.33:8000/predict/message", {
       text: text,
     });
 
