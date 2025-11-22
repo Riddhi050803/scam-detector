@@ -30,8 +30,16 @@ def predict_message(data: MessageInput):
 
 @app.post("/predict/url")
 def predict_url(data: URLInput):
-    df = prepare_url_for_model(data.url)  # creates dataframe with features
-    pred = url_model.predict(df)[0]
-    return {"prediction": "benign" if pred == 1 else  "malicious"}
+    df = prepare_url_for_model(data.url)
 
+    pred = int(url_model.predict(df)[0])
 
+    # Map number → category
+    label_map = {
+        0: "benign",
+        1: "phishing",
+        2: "malware",
+        3: "defacement"
+    }
+
+    return {"prediction": label_map.get(pred, "unknown")}

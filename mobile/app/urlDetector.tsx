@@ -7,56 +7,89 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 export default function URLDetector() {
   const router = useRouter();
   const [url, setUrl] = useState("");
- const [result, setResult] = useState<
-  { status: string; message: string } | null
->(null);
+  const [result, setResult] = useState<
+    { status: string; message: string } | null
+  >(null);
   const [loading, setLoading] = useState(false);
 
   const handleCheck = async () => {
-  if (!url.trim()) {
-    alert("Please enter a URL first");
-    return;
-  }
-
-  setLoading(true);
-  setResult(null);
-
-  try {
-    const res = await axios.post("http://192.168.1.33:8000/predict/url", {
-      url: url,
-    });
-
-    // Backend returns: { prediction: "benign" | "malicious" }
-    const pred = res.data.prediction;
-
-    if (pred === "malicious") {
-      setResult({
-        status: "SCAM",
-        message: "⚠️ This URL appears to be malicious. Avoid clicking!"
-      });
-    } else {
-      setResult({
-        status: "LEGIT",
-        message: "✅ This URL seems safe."
-      });
+    if (!url.trim()) {
+      alert("Please enter a URL first");
+      return;
     }
 
-  } catch (err) {
-    console.error(err);
-    setResult({
-      status: "ERROR",
-      message: "Could not check URL. Please try again.",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setResult(null);
 
+    try {
+      const res = await axios.post("http://192.168.1.33:8000/predict/url", {
+        url: url,
+      });
+
+      const pred = res.data.prediction; // "benign" | "phishing" | "malware" | "defacement"
+
+      // Map output to UI labels + messages + color
+      let status = "";
+      let message = "";
+
+      switch (pred) {
+        case "benign":
+          status = "SAFE";
+          message = "✅ This URL appears to be safe.";
+          break;
+
+        case "phishing":
+          status = "PHISHING";
+          message = "⚠️ This URL is likely a phishing attempt!";
+          break;
+
+        case "malware":
+          status = "MALWARE";
+          message = "☠️ This URL may contain malware. Avoid immediately!";
+          break;
+
+        case "defacement":
+          status = "DEFACEMENT";
+          message = "⚠️ This site appears to be tampered with or defaced.";
+          break;
+
+        default:
+          status = "UNKNOWN";
+          message = "❓ Unable to classify this URL.";
+      }
+
+      setResult({ status, message });
+
+    } catch (err) {
+      console.error(err);
+      setResult({
+        status: "ERROR",
+        message: "Could not check URL. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Color selection based on status
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "SAFE":
+        return "green";
+      case "PHISHING":
+        return "orange";
+      case "MALWARE":
+        return "red";
+      case "DEFACEMENT":
+        return "purple";
+      default:
+        return "gray";
+    }
+  };
 
   return (
     <View style={styles.container}>
-
-      {/* 🔹 Back Button */}
+      {/* Back Button */}
       <TouchableOpacity style={styles.backBtn} onPress={() => router.push("/")}>
         <MaterialCommunityIcons name="arrow-left" size={28} color="#333" />
       </TouchableOpacity>
@@ -80,21 +113,9 @@ export default function URLDetector() {
 
       {result && (
         <View style={styles.card}>
-          <Text
-            style={[
-              styles.status,
-              { color:
-                  result.status=== "SCAM"
-                    ? "red"
-                    : result.status === "LEGIT"
-                    ? "green"
-                    : "orange"
-              },
-            ]}
-          >
+          <Text style={[styles.status, { color: getStatusColor(result.status) }]}>
             {result.status}
           </Text>
-
           <Text style={styles.msg}>{result.message}</Text>
         </View>
       )}

@@ -26,34 +26,40 @@ def train_url_model():
     print("Loading dataset...")
     df = pd.read_csv(DATA_PATH)
 
-    # Convert labels
-    df["label"] = df["type"].apply(lambda x: 0 if x == "benign" else 1)
+    # MULTI-CLASS LABEL MAPPING
+    label_map = {
+        "benign": 0,
+        "phishing": 1,
+        "malware": 2,
+        "defacement": 3
+    }
+
+    df["label"] = df["type"].map(label_map)
 
     print("Extracting features...")
     feature_rows = []
     labels = []
 
     for _, row in df.iterrows():
-        # Make sure prepare_url_for_model returns one-row DataFrame
         features = prepare_url_for_model(row["url"])
         if features.empty:
-            continue  # skip if no features
+            continue
         feature_rows.append(features.iloc[0].to_dict())
         labels.append(row["label"])
 
     X = pd.DataFrame(feature_rows)
     y = pd.Series(labels)
 
-    # Split for validation
+    # Train-Test Split
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
     print("Training model...")
     model = RandomForestClassifier(
-        n_estimators=500,  # more trees for better accuracy
-        max_depth=None,    # allow full depth
-        class_weight='balanced',  # handle class imbalance
+        n_estimators=500,
+        max_depth=None,
+        class_weight='balanced',
         random_state=42
     )
     model.fit(X_train, y_train)
@@ -61,7 +67,11 @@ def train_url_model():
     # Validation
     y_pred = model.predict(X_val)
     print("\nValidation Report:\n")
-    print(classification_report(y_val, y_pred, target_names=["benign", "malicious"]))
+    print(classification_report(
+        y_val,
+        y_pred,
+        target_names=["benign", "phishing", "malware", "defacement"]
+    ))
 
     # Save model
     os.makedirs(MODEL_DIR, exist_ok=True)
